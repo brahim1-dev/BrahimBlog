@@ -1,0 +1,22 @@
+{
+  "name": "brahimblog",
+  "version": "1.0.0",
+  "description": "",
+  "main": "backend/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node /backend/server.js",
+    "dev": "nodemon /backend/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "types": "commonjs",
+  "dependencies": {
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
