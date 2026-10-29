@@ -7,6 +7,7 @@ import connectMongoDB from "./db/connectDB.js";
 
 dotenv.config()
 const app = express();
+app.use(express.json()) // express allows know json , if you are post data in you thunder client
 
 app.use("/api/auth", authRouter)
 
