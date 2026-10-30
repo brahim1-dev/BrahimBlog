@@ -1,7 +1,8 @@
 import express from "express";
 import dotenv from "dotenv"
-import authRouter from './routes/auth.route.js'
+import authRouter  from './routes/auth.route.js'
 import connectMongoDB from "./db/connectDB.js";
+import postRouter from "./routes/post.route.js";
 
 
 
@@ -10,6 +11,7 @@ const app = express();
 app.use(express.json()) // express allows know json , if you are post data in you thunder client
 
 app.use("/api/auth", authRouter)
+app.use("/api/posts", postRouter)
 
 const   PORT = process.env.PORT || 3000;
 
