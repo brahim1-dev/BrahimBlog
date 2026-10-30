@@ -80,3 +80,45 @@ export const register = async (req, res) =>{
     return res.status(500).json({error: "Internal server error"})
   }
 }
+
+export const login = async (req, res) =>{
+  try {
+    const {username, password} = req.body;
+    // check if the fields are empty
+    if(!username || !password) {
+      return res.status(400).json({
+        error: "Username and Password are required"
+      })
+    }
+
+    // Check if the user exist
+    const user = await User.findOne({username})
+    if(!user){
+      return res.status(404).json({
+        error: `User with the ${username} username doesn't exist`
+      })
+    }
+
+    // Compare the password
+    const isPasswordCorrect = bcrypt.compareSync(password, user?.password)
+    if(!isPasswordCorrect){
+      return res.status(400).json({
+        error: "Invalid Credentials"
+      })
+    }
+
+    generateTokenAndSetCookie(user._id, res);
+    res.status(200).json({
+      _id: user._id,
+      fullName: user.fullName,
+      username: user.username,
+      email: user.email,
+    });
+
+  } catch (error) {
+    console.error(`Error in login controller: ${error.message}`)
+    return res.status(500).json({
+      error: "Internal Server Error"
+    })
+  }
+}
