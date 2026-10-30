@@ -18,11 +18,14 @@ app.use("/api/posts", postRouter)
 
 const   PORT = process.env.PORT || 3000;
 
-app.listen(PORT, connectMongoDB(), () => 
-  console.log(`the server is running on ${PORT}`)
-);
+const startServer = async () => {
+  await connectMongoDB();
+  app.listen(PORT, () =>
+    console.log(`the server is running on ${PORT}`)
+  );
+};
 
-
-
-
-
+startServer().catch((error) => {
+  console.error(`Failed to start server: ${error.message}`);
+  process.exitCode = 1;
+});

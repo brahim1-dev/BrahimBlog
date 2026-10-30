@@ -1,27 +1,20 @@
-import User from "../models/user.model";
+import Post from "../models/post.model.js";
 
 export const createPost = async(req, res)=>{
   
   try {
     // 1. Destructuring post content from request body
-    const {content, title, category} = res.body;
+    const {content, title, category} = req.body ?? {};
 
     // 2. Get authenticated user ID and convert to String
-    const userId = req.uer._id.toString();
+    const userId = req.user._id.toString();
 
-    // 3. Verify user exists in database;
-    const user = await User.findById(userId);
-
-    if(!user){
-      return res.status(401).json({
-        error: "You are not authenticated"
-      })
-    }
+    // 3. The protectRoute middleware verifies the authenticated user.
     // 4. Validate post content required
-    if(!content){
+    if(!title || !content){
       //TODO: also Check if the post contains image or not
       return res.status(400).json({
-        error: "Post must contain both content and image"
+        error: "Title and content are required"
       })
     }
     //TODO: handle image upload
@@ -39,7 +32,7 @@ export const createPost = async(req, res)=>{
     await newPost.save();
 
     // return created post
-    res.status(202).json(newPost)
+    return res.status(201).json(newPost)
 
 
   } catch (error) {
@@ -74,10 +67,6 @@ export const deletePost = async(req, res)=>{
 export const getUserPosts = async(req, res)=>{
 
 }
-
-
-
-
 
 
 
