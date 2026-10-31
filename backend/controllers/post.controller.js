@@ -51,7 +51,27 @@ export const createPost = async(req, res)=>{
 
 
 export const getAllPosts = async(req, res)=>{
+  try {
+    
+    //. Fetch all the post 
+    const posts = await Post.find() //get all Posts without filtering
+    .sort({createdAt: -1})
+    .populate({path: "author", select: "-password"})
 
+    //Check the result
+    if (posts.length === 0){
+      return res.status(200).json([])
+    }
+
+    //return posts
+    return res.status(200).json(posts);
+
+  } catch (error) {
+    console.log(`Error in getAll Posts Controller: ${error.message}`)
+    return res.status(500).json({
+      error: "Internal Server Error"
+    })
+  }
 }
 
 
