@@ -1,10 +1,12 @@
 import Post from "../models/post.model.js";
+import {v2 as cloudinary} from "cloudinary"
 
 export const createPost = async(req, res)=>{
   
   try {
     // 1. Destructuring post content from request body
-    const {content, title, category} = req.body ?? {};
+    const {content, title, category} = req.body ;
+    let {image } = req.body;
 
     // 2. Get authenticated user ID and convert to String
     const userId = req.user._id.toString();
@@ -18,6 +20,10 @@ export const createPost = async(req, res)=>{
       })
     }
     //TODO: handle image upload
+    if(image){
+      const uploadImage = await cloudinary.uploader.upload(image);
+      image = uploadImage.secure_url;
+    }
 
     // Create New Post
     const newPost = new Post({

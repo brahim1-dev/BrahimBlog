@@ -4,10 +4,17 @@ import authRouter  from './routes/auth.route.js'
 import connectMongoDB from "./db/connectDB.js";
 import postRouter from "./routes/post.route.js";
 import cookieParser from "cookie-parser";
-
-
+import {v2 as cloudinary} from "cloudinary"
 
 dotenv.config()
+
+// Cloudinary Configuration;
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_CLOUD_NAME,
+});
+
 const app = express();
 app.use(express.json()) // express allows know json , if you are post data in you thunder client
 app.use(cookieParser())
