@@ -85,7 +85,7 @@ export const getPostById = async(req, res)=>{
       })
     }
     return res.status(200).json(post);
-    
+
   } catch (error) {
     console.log(`Error in getPostById Controller: ${error.message}`)
     return res.status(500).json({
@@ -95,9 +95,60 @@ export const getPostById = async(req, res)=>{
 }
 
 export const updatePost = async(req, res)=>{
+  try {
+    // get post ID from the request parameters
+    const {id} = req.params;
+    // get new content for the post from the request body
+    const {content, title, category} = req.body ;
+    let {image } = req.body;
 
+    // Find the post user's by ID
+    const userId = req.user._id.toString();
+
+    // Find the post by ID
+    const post = await Post.findById(id);
+    if(!post){
+      return res.status(404).json({
+        error: "Post not found"
+      })
+    }
+
+    // Check if the authenticated user is the author of the post
+    if(post.author.toString() !== userId){
+      return res.status(403).json({
+        error: "You are not authorized to update this post"
+      })
+    }
+
+    // validate updated: at least one field should be provided for update
+    if(!content && !title && !category && !image){
+      return res.status(400).json({
+        error: "At least one field must be provided for update"
+      })
+    }
+
+    //New image upload handling
+    if(image){
+      const uploadImage = await cloudinary.uploader.upload(image);
+      image = uploadImage.secure_url;
+    }
+
+    // Update the post with new values
+    const updatedPost = await Post.findByIdAndUpdate(
+      id,
+      { content, title, category, image },
+      { new: true, runValidators: true }
+    );
+
+    return res.status(200).json(updatedPost);
+
+  } catch (error) {
+    console.log(`Error in updatePost Controller: ${error.message}`)
+    return res.status(500).json({
+      error: "Internal Server Error"
+    })
+  }
 }
-
 
 export const deletePost = async(req, res)=>{
 
@@ -107,7 +158,6 @@ export const deletePost = async(req, res)=>{
 export const getUserPosts = async(req, res)=>{
 
 }
-
 
 
 
