@@ -76,9 +76,23 @@ export const getAllPosts = async(req, res)=>{
 
 
 export const getPostById = async(req, res)=>{
-
+  try {
+    const post = await Post.findById(req.params.id)
+    .populate({path: "author", select: "-password"})
+    if(!post){
+      return res.status(404).json({
+        error: "Post not found"
+      })
+    }
+    return res.status(200).json(post);
+    
+  } catch (error) {
+    console.log(`Error in getPostById Controller: ${error.message}`)
+    return res.status(500).json({
+      error: "Internal Server Error"
+    })
+  }
 }
-
 
 export const updatePost = async(req, res)=>{
 
