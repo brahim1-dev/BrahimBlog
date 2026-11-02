@@ -1,7 +1,10 @@
+import Navbar from "./components/Navbar"
 
 const App = () => {
   return (
-    <div className="bg-blue-500 text-3xl text-center">App</div>
+    <div>
+      <Navbar />
+    </div>
   )
 }
 
