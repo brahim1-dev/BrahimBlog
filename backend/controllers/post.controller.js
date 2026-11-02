@@ -1,4 +1,5 @@
 import Post from "../models/post.model.js";
+import User from "../models/user.model.js";
 import {v2 as cloudinary} from "cloudinary"
 
 export const createPost = async(req, res)=>{
@@ -184,10 +185,26 @@ export const deletePost = async(req, res)=>{
 
 
 export const getUserPosts = async(req, res)=>{
+  try {
+   const {username} = req.params;
+   const user = await User.findOne({username});
+   if(!user){
+    return res.status(404).json({
+      error: "User not found"
+    })
+   }
+  const posts = await Post.find({author: user._id})
+    .sort({createdAt: -1})
+    .populate({path: "author", select: "-password"})
 
+  res.status(200).json(posts);
+  } catch (error) {
+    console.log(`Error in getUsers post Controller: ${error.message}`)
+    return res.status(500).json({
+      error: "Internal Server Error"
+    })
+  }
 }
-
-
 
 
 
