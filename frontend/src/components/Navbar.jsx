@@ -1,5 +1,7 @@
 import { useState } from "react"
 import { Link, NavLink } from "react-router-dom"
+import { useSelector } from "react-redux"
+import { selectCurrentUser } from "../redux/UserSlice"
 
 const links = [
   { label: "Home", to: "/" },
@@ -9,6 +11,9 @@ const links = [
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false)
+  const user = useSelector(selectCurrentUser)
+  const actionTo = user ? "/dashboard" : "/signup"
+  const actionLabel = user ? "Dashboard" : "Join the community"
 
   const closeMenu = () => setMenuOpen(false)
 
@@ -24,7 +29,7 @@ const Navbar = () => {
             className="group flex items-center gap-3"
             onClick={closeMenu}
           >
-            <span className="flex size-10 items-center justify-center rounded-xl bg-[#0d6864] text-white shadow-lg shadow-teal-900/15 transition-transform group-hover:-rotate-3">
+            <span className="flex size-10 items-center justify-center rounded-xl bg-brand-primary text-white shadow-lg shadow-[0_10px_20px_-10px_rgba(8,98,136,0.5)] transition-transform group-hover:-rotate-3">
               <svg
                 aria-hidden="true"
                 viewBox="0 0 24 24"
@@ -46,8 +51,8 @@ const Navbar = () => {
               </svg>
             </span>
             <span className="leading-tight">
-              <span className="block text-base font-bold tracking-tight text-[#183536] sm:text-lg">
-                Bilaas <span className="text-[#0d7770]">Kubaro</span>
+              <span className="block text-base font-bold tracking-tight text-brand-primary sm:text-lg">
+                Bilaas <span className="text-brand-secondary">Kubaro</span>
               </span>
               <span className="mt-1 block text-[10px] font-medium uppercase tracking-[0.2em] text-slate-400">
                 Stories worth sharing
@@ -64,8 +69,8 @@ const Navbar = () => {
                 className={({ isActive }) =>
                   `rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-[#eaf5f2] text-[#0d6864]"
-                    : "text-slate-600 hover:bg-slate-100 hover:text-[#0d6864]"
+                    ? "bg-brand-sky/35 text-brand-primary"
+                    : "text-slate-600 hover:bg-brand-sky/25 hover:text-brand-primary"
                   }`
                 }
               >
@@ -76,10 +81,10 @@ const Navbar = () => {
 
           <div className="hidden md:block">
             <Link
-              to="/signup"
-              className="inline-flex items-center gap-2 rounded-full bg-[#0d6864] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-teal-900/15 transition-all hover:-translate-y-0.5 hover:bg-[#095753] hover:shadow-teal-900/25"
+              to={actionTo}
+              className="inline-flex items-center gap-2 rounded-full bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[0_10px_20px_-10px_rgba(8,98,136,0.5)] transition-all hover:-translate-y-0.5 hover:bg-brand-secondary hover:shadow-[0_10px_20px_-10px_rgba(8,98,136,0.6)]"
             >
-              Join the community
+              {actionLabel}
               <svg
                 aria-hidden="true"
                 viewBox="0 0 20 20"
@@ -99,7 +104,7 @@ const Navbar = () => {
 
           <button
             type="button"
-            className="flex size-10 items-center justify-center rounded-xl text-slate-700 transition-colors hover:bg-slate-100 md:hidden"
+            className="flex size-10 items-center justify-center rounded-xl text-brand-primary transition-colors hover:bg-brand-sky/25 md:hidden"
             aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
             aria-expanded={menuOpen}
             aria-controls="mobile-navigation"
@@ -157,8 +162,8 @@ const Navbar = () => {
                   className={({ isActive }) =>
                     `rounded-xl px-4 py-3 text-sm font-medium transition-colors ${
                       isActive
-                        ? "bg-[#eaf5f2] text-[#0d6864]"
-                        : "text-slate-600 hover:bg-[#eaf5f2] hover:text-[#0d6864]"
+                        ? "bg-brand-sky/35 text-brand-primary"
+                        : "text-slate-600 hover:bg-brand-sky/25 hover:text-brand-primary"
                     }`
                   }
                 >
@@ -166,11 +171,11 @@ const Navbar = () => {
                 </NavLink>
               ))}
               <Link
-                to="/signup"
+                to={actionTo}
                 onClick={closeMenu}
-                className="mt-2 inline-flex items-center justify-center rounded-xl bg-[#0d6864] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#095753]"
+                className="mt-2 inline-flex items-center justify-center rounded-xl bg-brand-primary px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-secondary"
               >
-                Join the community
+                {actionLabel}
               </Link>
             </div>
           </div>

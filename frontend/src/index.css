@@ -1,9 +1,16 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-primary: #086288;
+  --color-brand-secondary: #4d8dba;
+  --color-brand-sky: #97d7ff;
+  --color-brand-cream: #ffefc4;
+}
+
 :root {
   font-family: "Poppins", sans-serif;
-  color: #183536;
-  background: #f5f8f6;
+  color: var(--color-brand-primary);
+  background: color-mix(in srgb, var(--color-brand-cream) 22%, white);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -25,8 +32,12 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(ellipse at 50% -18rem, rgba(163, 213, 196, 0.3), transparent 58%),
-    #f5f8f6;
+    radial-gradient(
+      ellipse at 50% -18rem,
+      color-mix(in srgb, var(--color-brand-sky) 42%, transparent),
+      transparent 58%
+    ),
+    color-mix(in srgb, var(--color-brand-cream) 22%, white);
 }
 
 button,
