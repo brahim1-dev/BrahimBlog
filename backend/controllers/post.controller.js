@@ -7,6 +7,7 @@ export const createPost = async(req, res)=>{
   try {
     // 1. Destructuring post content from request body
     const {content, title, category} = req.body ;
+    let {link} = req.body;
     let {image } = req.body;
 
     // 2. Get authenticated user ID and convert to String
@@ -20,10 +21,22 @@ export const createPost = async(req, res)=>{
         error: "Title and content are required"
       })
     }
-    //TODO: handle image upload
     if(image){
+      if (typeof image !== "string" || !/^data:image\/[\w.+-]+;base64,/i.test(image)) {
+        return res.status(400).json({ error: "Image must be a valid uploaded image" })
+      }
       const uploadImage = await cloudinary.uploader.upload(image);
       image = uploadImage.secure_url;
+    }
+
+    if (link) {
+      try {
+        const parsedLink = new URL(link)
+        if (!["http:", "https:"].includes(parsedLink.protocol)) throw new Error()
+        link = parsedLink.toString()
+      } catch {
+        return res.status(400).json({ error: "Link must be a valid HTTP or HTTPS URL" })
+      }
     }
 
     // Create New Post
@@ -32,7 +45,8 @@ export const createPost = async(req, res)=>{
       title,
       category,
       author: userId,
-      //TODO:  image
+      image,
+      link,
     })
 
     // Let's Save the post
@@ -101,7 +115,7 @@ export const updatePost = async(req, res)=>{
     const {id} = req.params;
     // get new content for the post from the request body
     const {content, title, category} = req.body ;
-    let {image } = req.body;
+    let {image, link} = req.body;
 
     // Find the post user's by ID
     const userId = req.user._id.toString();
@@ -122,7 +136,7 @@ export const updatePost = async(req, res)=>{
     }
 
     // validate updated: at least one field should be provided for update
-    if(!content && !title && !category && !image){
+    if(!content && !title && !category && !image && !link){
       return res.status(400).json({
         error: "At least one field must be provided for update"
       })
@@ -134,10 +148,20 @@ export const updatePost = async(req, res)=>{
       image = uploadImage.secure_url;
     }
 
+    if (link) {
+      try {
+        const parsedLink = new URL(link)
+        if (!["http:", "https:"].includes(parsedLink.protocol)) throw new Error()
+        link = parsedLink.toString()
+      } catch {
+        return res.status(400).json({ error: "Link must be a valid HTTP or HTTPS URL" })
+      }
+    }
+
     // Update the post with new values
     const updatedPost = await Post.findByIdAndUpdate(
       id,
-      { content, title, category, image },
+      { content, title, category, image, link },
       { new: true, runValidators: true }
     );
 

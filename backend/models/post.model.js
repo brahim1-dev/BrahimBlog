@@ -20,6 +20,10 @@ const postSchema = new mongoose.Schema({
     image: {
       type: String,
     },
+    link: {
+      type: String,
+      trim: true,
+    },
 
   },{
     timestamps: true,

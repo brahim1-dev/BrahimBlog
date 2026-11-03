@@ -12,11 +12,11 @@ dotenv.config()
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_CLOUD_NAME,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 const app = express();
-app.use(express.json()) // express allows know json , if you are post data in you thunder client
+app.use(express.json({ limit: "10mb" })) // express allows know json , if you are post data in you thunder client
 app.use(cookieParser())
 
 
