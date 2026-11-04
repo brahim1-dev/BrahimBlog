@@ -200,7 +200,7 @@ const CreatePost = () => {
             />
           </div>
           <div>
-            <p id="post-content-label" className="mb-2 text-sm font-semibold text-[#183f3b]">Story</p>
+            <p id="post-content-label" className="mb-2 text-sm font-semibold text-[#183f3b]">Description</p>
             <Suspense fallback={<div role="status" className="rich-editor-shell flex min-h-72 items-center px-4 text-sm text-slate-500">Loading editor...</div>}>
               <RichTextEditor
                 value={content}
