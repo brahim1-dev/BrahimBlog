@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from "react"
+import { lazy, Suspense, useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
 import { FiArrowLeft, FiImage, FiSave, FiX } from "react-icons/fi"
+
+const RichTextEditor = lazy(() => import("../components/RichTextEditor"))
 
 const EditPost = () => {
   const { id } = useParams()
@@ -89,6 +91,17 @@ const EditPost = () => {
   const handleSubmit = async (event) => {
     event.preventDefault()
     setError("")
+
+    const storyText = content
+      .replace(/<[^>]*>/g, " ")
+      .replace(/&nbsp;|&#160;/gi, " ")
+      .trim()
+
+    if (!storyText) {
+      setError("Write some story content before saving.")
+      return
+    }
+
     setIsSaving(true)
 
     const updatedPost = {
@@ -230,16 +243,14 @@ const EditPost = () => {
               />
             </div>
             <div>
-              <label htmlFor="post-content" className="mb-2 block text-sm font-semibold text-[#183f3b]">Story</label>
-              <textarea
-                id="post-content"
-                name="content"
-                required
-                rows={12}
-                value={content}
-                onChange={(event) => setContent(event.target.value)}
-                className="w-full resize-y rounded-xl border border-[#d9e2dc] bg-white px-4 py-3 text-sm leading-7 text-[#183f3b] outline-none transition placeholder:text-slate-400 focus:border-[#1d6b58] focus:ring-2 focus:ring-[#1d6b58]/15"
-              />
+              <p id="post-content-label" className="mb-2 text-sm font-semibold text-[#183f3b]">Story</p>
+              <Suspense fallback={<div role="status" className="rich-editor-shell flex min-h-72 items-center px-4 text-sm text-slate-500">Loading editor...</div>}>
+                <RichTextEditor
+                  value={content}
+                  onChange={setContent}
+                  labelledBy="post-content-label"
+                />
+              </Suspense>
             </div>
 
             {error && <p role="alert" className="text-sm text-[#9b422f]">{error}</p>}

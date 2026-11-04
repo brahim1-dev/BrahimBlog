@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useSelector } from "react-redux"
+import DOMPurify from "dompurify"
 import Swal from "sweetalert2"
-import { FiArrowLeft, FiArrowUpRight, FiBookOpen, FiEdit3, FiLink, FiPlus, FiTrash2 } from "react-icons/fi"
+import { FiArrowLeft, FiArrowUpRight, FiBookOpen, FiEdit3, FiImage, FiLink, FiPlus, FiSearch, FiTrash2, FiX } from "react-icons/fi"
 import { selectCurrentUser } from "../redux/UserSlice"
 
 const formatDate = (date) => {
@@ -21,7 +22,14 @@ const PostList = () => {
   const [isFetching, setIsFetching] = useState(true)
   const [error, setError] = useState("")
   const [deletingPostId, setDeletingPostId] = useState("")
+  const [search, setSearch] = useState("")
   const isLoading = Boolean(user?.username) && isFetching
+  const searchTerm = search.trim().toLocaleLowerCase()
+  const filteredPosts = posts.filter((post) =>
+    [post.title, post.category, post.content]
+      .filter(Boolean)
+      .some((value) => value.toLocaleLowerCase().includes(searchTerm)),
+  )
 
   const handleDelete = async (post) => {
     const confirmation = await Swal.fire({
@@ -114,13 +122,49 @@ const PostList = () => {
               {user?.username ? `Stories by @${user.username}` : "Sign in to see your stories."}
             </p>
           </div>
-          <Link
-            to="/create-post"
-            className="inline-flex min-h-11 items-center justify-center gap-2 self-start rounded-xl bg-[#123e43] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#1d6b58] sm:self-auto"
-          >
-            <FiPlus aria-hidden="true" className="size-4" /> Create post
-          </Link>
+          <div className="flex items-center gap-4 self-start sm:self-auto">
+            {!isLoading && user?.username && (
+              <span className="text-sm font-medium text-slate-500">
+                {posts.length} {posts.length === 1 ? "story" : "stories"}
+              </span>
+            )}
+            <Link
+              to="/create-post"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#123e43] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#1d6b58]"
+            >
+              <FiPlus aria-hidden="true" className="size-4" /> Create post
+            </Link>
+          </div>
         </div>
+
+        {!error && !isLoading && user?.username && posts.length > 0 && (
+          <div className="flex flex-col justify-between gap-3 border-b border-[#e2e8e3] py-4 sm:flex-row sm:items-center">
+            <label className="relative block w-full sm:max-w-sm">
+              <FiSearch aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#648078]" />
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search your stories"
+                aria-label="Search your stories"
+                className="min-h-11 w-full rounded-xl border border-[#d9e2dc] bg-white/80 pl-10 pr-10 text-sm text-[#183f3b] outline-none transition focus:border-[#1d6b58] focus:ring-2 focus:ring-[#1d6b58]/15"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch("")}
+                  aria-label="Clear search"
+                  className="absolute right-2 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-lg text-slate-500 hover:bg-[#e8f2eb] hover:text-[#183f3b]"
+                >
+                  <FiX aria-hidden="true" className="size-4" />
+                </button>
+              )}
+            </label>
+            <p className="text-sm text-slate-500" aria-live="polite">
+              Showing {filteredPosts.length} of {posts.length}
+            </p>
+          </div>
+        )}
 
         {error ? (
           <p role="alert" className="py-8 text-sm text-[#9b422f]">{error}</p>
@@ -132,30 +176,36 @@ const PostList = () => {
               Sign in to view your posts <FiArrowUpRight aria-hidden="true" className="inline size-4" />
             </Link>
           </div>
-        ) : posts.length ? (
+        ) : filteredPosts.length ? (
           <div className="divide-y divide-[#e2e8e3]">
-            {posts.map((post) => (
-              <article key={post._id} className="flex flex-col justify-between gap-4 py-6 sm:flex-row sm:items-center">
+            {filteredPosts.map((post) => (
+              <article key={post._id} className="flex flex-col justify-between gap-4 py-6 sm:flex-row sm:items-start">
                 <div className="flex min-w-0 gap-4">
-                  {post.image && (
-                    <img
-                      src={post.image}
-                      alt=""
-                      loading="lazy"
-                      className="size-20 shrink-0 rounded-xl object-cover sm:size-24"
-                    />
-                  )}
-                  <div className="min-w-0">
-                    <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#648078]">
+                  <div className="flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#e8f2eb] text-[#648078] sm:size-24">
+                    {post.image ? (
+                      <img
+                        src={post.image}
+                        alt=""
+                        loading="lazy"
+                        className="size-full object-cover"
+                      />
+                    ) : (
+                      <FiImage aria-hidden="true" className="size-6" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#648078]">
                       <span>{post.category || "Uncategorized"}</span>
                       <span aria-hidden="true" className="size-1 rounded-full bg-[#aabbb0]" />
                       <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
-                    </p>
-                    <h2 className="truncate text-xl font-semibold text-[#183f3b]">{post.title}</h2>
+                      <span className="rounded-full bg-[#e8f2eb] px-2 py-1 text-[10px] tracking-[0.1em] text-[#1d6b58]">Published</span>
+                    </div>
+                    <h2 className="text-xl font-semibold leading-snug text-[#183f3b]">{post.title}</h2>
                     {post.content && (
-                      <p className="mt-2 line-clamp-2 max-w-2xl text-sm leading-6 text-slate-500">
-                        {post.content}
-                      </p>
+                      <div
+                        className="post-rich-preview mt-2 line-clamp-3 max-w-2xl text-sm leading-6 text-slate-500"
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
+                      />
                     )}
                     {post.link && (
                       <a
@@ -194,6 +244,17 @@ const PostList = () => {
                 </div>
               </article>
             ))}
+          </div>
+        ) : posts.length ? (
+          <div className="py-10">
+            <h2 className="text-lg font-semibold text-[#183f3b]">No stories match that search</h2>
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              className="mt-3 text-sm font-semibold text-[#1d6b58] hover:text-[#123e43]"
+            >
+              Clear search
+            </button>
           </div>
         ) : (
           <div className="py-10">

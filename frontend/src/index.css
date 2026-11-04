@@ -49,6 +49,236 @@ a {
   animation: navbar-enter 500ms ease-out both;
 }
 
+.rich-editor-shell {
+  overflow: hidden;
+  border: 1px solid #d9e2dc;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.rich-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  border-bottom: 1px solid #e2e8e3;
+  background: #f7f9f6;
+  padding: 0.5rem;
+}
+
+.rich-editor-group {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.rich-editor-button {
+  display: inline-flex;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: #52756c;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.rich-editor-button:hover:not(:disabled),
+.rich-editor-button.is-active {
+  background: #dcefe5;
+  color: #123e43;
+}
+
+.rich-editor-button:focus-visible {
+  outline: 2px solid #1d6b58;
+  outline-offset: 2px;
+}
+
+.rich-editor-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.35;
+}
+
+.rich-editor-divider {
+  width: 1px;
+  height: 1.5rem;
+  margin: 0 0.1rem;
+  background: #d9e2dc;
+}
+
+.rich-editor-shell .tiptap {
+  min-height: 16rem;
+  padding: 1rem;
+  color: #183f3b;
+  font-size: 0.925rem;
+  line-height: 1.8;
+  outline: none;
+}
+
+.rich-editor-shell .tiptap > * + * {
+  margin-top: 0.8rem;
+}
+
+.rich-editor-shell .tiptap h2 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.rich-editor-shell .tiptap h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.rich-editor-shell .tiptap ul,
+.rich-editor-shell .tiptap ol {
+  padding-left: 1.5rem;
+}
+
+.rich-editor-shell .tiptap ul {
+  list-style: disc;
+}
+
+.rich-editor-shell .tiptap ol {
+  list-style: decimal;
+}
+
+.rich-editor-shell .tiptap blockquote {
+  border-left: 3px solid #b35038;
+  padding-left: 1rem;
+  color: #52756c;
+  font-style: italic;
+}
+
+.rich-editor-shell .tiptap a,
+.post-rich-preview a {
+  color: #1d6b58;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.rich-editor-shell .tiptap p.is-editor-empty:first-child::before {
+  float: left;
+  height: 0;
+  color: #94a3a0;
+  content: attr(data-placeholder);
+  pointer-events: none;
+}
+
+.rich-editor-footer {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #e2e8e3;
+  padding: 0.55rem 0.85rem;
+  color: #71847d;
+  font-size: 0.72rem;
+}
+
+.post-rich-preview {
+  overflow-wrap: anywhere;
+}
+
+.post-rich-preview h2,
+.post-rich-preview h3 {
+  display: inline;
+  font-weight: 600;
+}
+
+.post-rich-preview ul,
+.post-rich-preview ol {
+  display: inline;
+  padding-left: 1.25rem;
+}
+
+.post-rich-preview blockquote {
+  display: inline;
+  border-left: 2px solid #d9e2dc;
+  padding-left: 0.5rem;
+  color: #52756c;
+}
+
+.post-rich-preview p + p {
+  margin-top: 0.25rem;
+}
+
+.blog-post-content > div > * + * {
+  margin-top: 1.25rem;
+}
+
+.blog-post-content p {
+  color: #405b53;
+  font-size: 1.05rem;
+  line-height: 1.9;
+}
+
+.blog-post-content h2 {
+  color: #183f3b;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.blog-post-content h3 {
+  color: #183f3b;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.blog-post-content ul,
+.blog-post-content ol {
+  padding-left: 1.5rem;
+  color: #405b53;
+  font-size: 1.05rem;
+  line-height: 1.9;
+}
+
+.blog-post-content ul {
+  list-style: disc;
+}
+
+.blog-post-content ol {
+  list-style: decimal;
+}
+
+.blog-post-content blockquote {
+  border-left: 3px solid #b35038;
+  padding: 0.25rem 0 0.25rem 1.25rem;
+  color: #52756c;
+  font-size: 1.15rem;
+  font-style: italic;
+  line-height: 1.8;
+}
+
+.blog-post-content a {
+  color: #1d6b58;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+
+.blog-post-content pre {
+  overflow-x: auto;
+  border-radius: 0.75rem;
+  background: #123e43;
+  padding: 1rem;
+  color: #f7f9f6;
+  font-size: 0.9rem;
+}
+
+.blog-post-content code {
+  border-radius: 0.25rem;
+  background: #e8f2eb;
+  padding: 0.1rem 0.25rem;
+  font-size: 0.9em;
+}
+
 @keyframes navbar-enter {
   from {
     opacity: 0;
