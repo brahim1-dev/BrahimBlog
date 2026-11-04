@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { Link, useParams } from "react-router-dom"
 import { useSelector } from "react-redux"
 import DOMPurify from "dompurify"
-import Swal from "sweetalert2"
 import { FiArrowLeft, FiArrowUpRight, FiCalendar, FiClock, FiEdit3, FiShare2 } from "react-icons/fi"
 import { selectCurrentUser } from "../redux/UserSlice"
 
@@ -70,6 +69,7 @@ const BlogPost = () => {
     } catch (shareError) {
       if (shareError.name === "AbortError") return
 
+      const { default: Swal } = await import("sweetalert2")
       await Swal.fire({
         title: "Share this story",
         input: "text",

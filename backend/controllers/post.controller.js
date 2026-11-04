@@ -1,6 +1,7 @@
 import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import {v2 as cloudinary} from "cloudinary"
+import { deleteCloudinaryImage } from "../utils/cloudinaryImage.js";
 
 const resolvePostImage = async (image) => {
   if (!image) return { image }
@@ -149,7 +150,7 @@ export const updatePost = async(req, res)=>{
     }
 
     // Check if the authenticated user is the author of the post
-    if(post.author.toString() !== userId){
+    if(post.author.toString() !== userId && req.user.role !== "admin"){
       return res.status(403).json({
         error: "You are not authorized to update this post"
       })
@@ -206,17 +207,14 @@ export const deletePost = async(req, res)=>{
         error: "Post not found"
       })
     }
-    if(post.author.toString() !== req.user._id.toString()){
+    if(post.author.toString() !== req.user._id.toString() && req.user.role !== "admin"){
       return res.status(403).json({
         error: "Unauthorized to delete this post"
       })
     }
     
     //let's delete the post
-    if(post.image){
-      const imageId = post.image.split("/").pop().split(".")[0];
-      await cloudinary.uploader.destroy(imageId);
-    }
+    await deleteCloudinaryImage(post.image)
     await Post.findByIdAndDelete(req.params.id);
     return res.status(200).json({
       error: "Post deleted successfully"

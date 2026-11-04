@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js"
+    "dev": "nodemon backend/server.js",
+    "make-admin": "node backend/scripts/setAdminRole.js"
   },
   "keywords": [],
   "author": "",

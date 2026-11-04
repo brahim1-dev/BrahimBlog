@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useSelector } from "react-redux"
 import DOMPurify from "dompurify"
-import Swal from "sweetalert2"
 import { FiArrowLeft, FiArrowUpRight, FiBookOpen, FiEdit3, FiImage, FiLink, FiPlus, FiSearch, FiTrash2, FiX } from "react-icons/fi"
 import { selectCurrentUser } from "../redux/UserSlice"
 
@@ -32,6 +31,7 @@ const PostList = () => {
   )
 
   const handleDelete = async (post) => {
+    const { default: Swal } = await import("sweetalert2")
     const confirmation = await Swal.fire({
       title: "Delete this post?",
       text: "This action cannot be undone.",

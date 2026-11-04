@@ -6,6 +6,7 @@ import { selectCurrentUser } from "../redux/UserSlice"
 const links = [
   { label: "Home", to: "/" },
   { label: "Blogs", to: "/blogs" },
+  { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
 ]
 
@@ -14,6 +15,9 @@ const Navbar = () => {
   const user = useSelector(selectCurrentUser)
   const actionTo = user ? "/dashboard" : "/signup"
   const actionLabel = user ? "Dashboard" : "Join the community"
+  const navLinks = user?.role === "admin"
+    ? [...links, { label: "Admin", to: "/admin/users" }]
+    : links
 
   const closeMenu = () => setMenuOpen(false)
 
@@ -61,7 +65,7 @@ const Navbar = () => {
           </Link>
 
           <div className="hidden items-center gap-1 md:flex">
-            {links.map((link) => (
+            {navLinks.map((link) => (
               <NavLink
                 key={link.label}
                 to={link.to}
@@ -153,7 +157,7 @@ const Navbar = () => {
         >
           <div className="overflow-hidden">
             <div className="flex flex-col gap-1 pt-3">
-              {links.map((link) => (
+              {navLinks.map((link) => (
                 <NavLink
                   key={link.label}
                   to={link.to}

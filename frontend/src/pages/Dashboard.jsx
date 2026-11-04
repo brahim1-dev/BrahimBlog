@@ -2,7 +2,6 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useDispatch, useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
-import Swal from "sweetalert2"
 import {
   FiArrowRight,
   FiArrowUpRight,
@@ -41,6 +40,7 @@ const Dashboard = () => {
   const firstName = user?.fullName?.trim().split(/\s+/)[0] || user?.username || "Writer"
 
   const handleLogout = async () => {
+    const { default: Swal } = await import("sweetalert2")
     const confirmation = await Swal.fire({
       title: "Sign out?",
       text: "You may lose any unsaved changes.",
@@ -166,13 +166,13 @@ const Dashboard = () => {
             <FiPlus aria-hidden="true" className="size-4 text-[#1d6b58]" />
             Create post
           </Link>
-          <a
-            href="#profile"
+          <Link
+            to="/profile"
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl border border-[#d9e2dc] bg-white/70 px-3 text-sm font-semibold text-[#183f3b] transition-colors hover:border-[#1d6b58] hover:bg-[#e8f2eb]"
           >
             <FiUser aria-hidden="true" className="size-4 text-[#1d6b58]" />
             Profile
-          </a>
+          </Link>
           <button
             type="button"
             onClick={handleLogout}

@@ -1,6 +1,9 @@
+import { lazy, Suspense } from "react"
+import AdminRoute from "./components/AdminRoute"
 import Navbar from "./components/Navbar"
 import Footer from "./components/Footer"
 import { Navigate, Route, Routes } from "react-router-dom"
+import About from "./pages/About"
 import Blog from "./pages/Blog"
 import BlogPost from "./pages/BlogPost"
 import Contact from "./pages/Contact"
@@ -12,6 +15,10 @@ import PostList from "./pages/PostList"
 import SignIn from "./pages/SignIn"
 import SignUp from "./pages/SignUp"
 
+const Profile = lazy(() => import("./pages/Profile"))
+const AdminUsers = lazy(() => import("./pages/Dashboard/Users"))
+const AdminPosts = lazy(() => import("./pages/Dashboard/Posts"))
+
 const App = () => {
   return (
     <div className="flex min-h-screen flex-col">
@@ -19,12 +26,41 @@ const App = () => {
       <div className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
           <Route path="/blogs" element={<Blog />} />
           <Route path="/blogs/:id" element={<BlogPost />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route
+            path="/admin/users"
+            element={(
+              <AdminRoute>
+                <Suspense fallback={<main className="px-4 py-10 text-sm text-slate-500">Loading admin tools...</main>}>
+                  <AdminUsers />
+                </Suspense>
+              </AdminRoute>
+            )}
+          />
+          <Route
+            path="/admin/posts"
+            element={(
+              <AdminRoute>
+                <Suspense fallback={<main className="px-4 py-10 text-sm text-slate-500">Loading admin tools...</main>}>
+                  <AdminPosts />
+                </Suspense>
+              </AdminRoute>
+            )}
+          />
+          <Route
+            path="/profile"
+            element={(
+              <Suspense fallback={<main className="px-4 py-10 text-sm text-slate-500">Loading profile...</main>}>
+                <Profile />
+              </Suspense>
+            )}
+          />
           <Route path="/posts" element={<PostList />} />
           <Route path="/create-post" element={<CreatePost />} />
           <Route path="/edit-post/:id" element={<EditPost />} />

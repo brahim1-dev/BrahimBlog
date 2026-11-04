@@ -30,6 +30,7 @@ const Home = () => {
       .filter(Boolean)
       .some((value) => value.toLocaleLowerCase().includes(searchTerm)),
   )
+  const featuredPost = filteredPosts[0]
   const visiblePosts = filteredPosts.slice(0, 6)
 
   useEffect(() => {
@@ -81,6 +82,64 @@ const Home = () => {
             <FiPlus aria-hidden="true" className="size-4" /> Create a post
           </Link>
         </section>
+
+        {!isLoading && !error && featuredPost && (
+          <section aria-label="Featured latest post" className="mt-8">
+            <div className="mb-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#648078]">Featured</p>
+              <h2 className="mt-1 text-2xl font-semibold tracking-tight text-[#183f3b]">The latest story</h2>
+            </div>
+            <article className="grid overflow-hidden rounded-2xl bg-[#123e43] text-white md:grid-cols-[1.15fr_1fr]">
+              <Link
+                to={`/blogs/${featuredPost._id}`}
+                aria-label={`Read ${featuredPost.title}`}
+                className="group relative block aspect-[16/10] min-h-56 overflow-hidden bg-[#1d514f] md:aspect-auto md:min-h-[22rem]"
+              >
+                {featuredPost.image ? (
+                  <img
+                    src={featuredPost.image}
+                    alt={featuredPost.title}
+                    fetchPriority="high"
+                    className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+                  />
+                ) : (
+                  <div className="flex size-full items-center justify-center text-white/60">
+                    <FiImage aria-hidden="true" className="size-10" />
+                  </div>
+                )}
+                <span className="absolute left-4 top-4 rounded-full bg-black/55 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.1em] text-white backdrop-blur-sm">
+                  Featured
+                </span>
+              </Link>
+              <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#d6f27a]">
+                  <span>{featuredPost.category || "Stories"}</span>
+                  <span aria-hidden="true" className="size-1 rounded-full bg-white/50" />
+                  <time dateTime={featuredPost.createdAt}>{formatDate(featuredPost.createdAt)}</time>
+                </div>
+                <h2 className="mt-4 text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
+                  <Link to={`/blogs/${featuredPost._id}`} className="transition-colors hover:text-[#d6f27a]">
+                    {featuredPost.title}
+                  </Link>
+                </h2>
+                <p className="mt-3 line-clamp-3 text-sm leading-6 text-white/75 sm:text-base">
+                  {getDescription(featuredPost.content) || "Open this post to read the full story."}
+                </p>
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-white/15 pt-5">
+                  <span className="text-sm font-medium text-white/70">
+                    By {featuredPost.author?.fullName || featuredPost.author?.username || "Bilaas Kubaro"}
+                  </span>
+                  <Link
+                    to={`/blogs/${featuredPost._id}`}
+                    className="inline-flex min-h-10 items-center gap-2 rounded-full bg-white px-4 text-sm font-semibold text-[#123e43] transition-colors hover:bg-[#d6f27a]"
+                  >
+                    Read story <FiArrowRight aria-hidden="true" className="size-4" />
+                  </Link>
+                </div>
+              </div>
+            </article>
+          </section>
+        )}
 
         <section aria-labelledby="latest-stories-heading" className="mt-8">
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">

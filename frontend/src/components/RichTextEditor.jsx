@@ -2,7 +2,6 @@ import { useEffect } from "react"
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Placeholder from "@tiptap/extension-placeholder"
-import Swal from "sweetalert2"
 import {
   FiLink,
   FiList,
@@ -86,6 +85,7 @@ const RichTextEditor = ({ value, onChange, labelledBy }) => {
       return
     }
 
+    const { default: Swal } = await import("sweetalert2")
     const result = await Swal.fire({
       title: "Add a link",
       input: "url",
