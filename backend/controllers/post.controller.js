@@ -2,6 +2,26 @@ import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import {v2 as cloudinary} from "cloudinary"
 
+const resolvePostImage = async (image) => {
+  if (!image) return { image }
+  if (typeof image !== "string") {
+    return { error: "Image must be a valid image URL or uploaded image" }
+  }
+
+  if (/^data:image\/[\w.+-]+;base64,/i.test(image)) {
+    const uploadImage = await cloudinary.uploader.upload(image)
+    return { image: uploadImage.secure_url }
+  }
+
+  try {
+    const imageUrl = new URL(image)
+    if (!["http:", "https:"].includes(imageUrl.protocol)) throw new Error()
+    return { image: imageUrl.toString() }
+  } catch {
+    return { error: "Image must be a valid HTTP or HTTPS URL" }
+  }
+}
+
 export const createPost = async(req, res)=>{
   
   try {
@@ -21,12 +41,12 @@ export const createPost = async(req, res)=>{
         error: "Title and content are required"
       })
     }
-    if(image){
-      if (typeof image !== "string" || !/^data:image\/[\w.+-]+;base64,/i.test(image)) {
-        return res.status(400).json({ error: "Image must be a valid uploaded image" })
+    if (image) {
+      const resolvedImage = await resolvePostImage(image)
+      if (resolvedImage.error) {
+        return res.status(400).json({ error: resolvedImage.error })
       }
-      const uploadImage = await cloudinary.uploader.upload(image);
-      image = uploadImage.secure_url;
+      image = resolvedImage.image
     }
 
     if (link) {
@@ -143,9 +163,12 @@ export const updatePost = async(req, res)=>{
     }
 
     //New image upload handling
-    if(image){
-      const uploadImage = await cloudinary.uploader.upload(image);
-      image = uploadImage.secure_url;
+    if (image) {
+      const resolvedImage = await resolvePostImage(image)
+      if (resolvedImage.error) {
+        return res.status(400).json({ error: resolvedImage.error })
+      }
+      image = resolvedImage.image
     }
 
     if (link) {

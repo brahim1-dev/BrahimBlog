@@ -9,6 +9,7 @@ const CreatePost = () => {
   const [content, setContent] = useState("")
   const [image, setImage] = useState("")
   const [imageName, setImageName] = useState("")
+  const [imageUrl, setImageUrl] = useState("")
   const [link, setLink] = useState("")
   const [error, setError] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -43,6 +44,7 @@ const CreatePost = () => {
   const removeImage = () => {
     setImage("")
     setImageName("")
+    setImageUrl("")
     if (imageInputRef.current) imageInputRef.current.value = ""
   }
 
@@ -60,7 +62,7 @@ const CreatePost = () => {
           title: title.trim(),
           category: category.trim(),
           content: content.trim(),
-          image: image || undefined,
+          image: imageUrl.trim() || image || undefined,
           link: link.trim() || undefined,
         }),
       })
@@ -127,6 +129,18 @@ const CreatePost = () => {
             <label htmlFor="post-image" className="mb-2 flex items-center gap-2 text-sm font-semibold text-[#183f3b]">
               <FiImage aria-hidden="true" className="size-4 text-[#1d6b58]" /> Cover image <span className="font-normal text-slate-400">Optional</span>
             </label>
+            <label htmlFor="post-image-url" className="mb-2 block text-sm font-medium text-[#52756c]">Image URL</label>
+            <input
+              id="post-image-url"
+              name="imageUrl"
+              type="url"
+              value={imageUrl}
+              onChange={(event) => setImageUrl(event.target.value)}
+              placeholder="https://example.com/image.jpg"
+              className="w-full rounded-xl border border-[#d9e2dc] bg-white px-4 py-3 text-sm text-[#183f3b] outline-none transition focus:border-[#1d6b58] focus:ring-2 focus:ring-[#1d6b58]/15"
+            />
+            <p className="mt-2 text-xs text-slate-500">An image URL takes priority. Leave it empty to upload from your computer.</p>
+            <label htmlFor="post-image" className="mb-2 mt-4 block text-sm font-medium text-[#52756c]">Or choose a file</label>
             <input
               ref={imageInputRef}
               id="post-image"
@@ -137,11 +151,13 @@ const CreatePost = () => {
               className="block w-full cursor-pointer rounded-xl border border-[#d9e2dc] bg-white text-sm text-slate-500 file:mr-4 file:border-0 file:bg-[#e8f2eb] file:px-4 file:py-3 file:font-semibold file:text-[#1d6b58] hover:file:bg-[#dcefe5]"
             />
             <p className="mt-2 text-xs text-slate-500">Image files up to 6 MB.</p>
-            {image && (
+            {(imageUrl.trim() || image) && (
               <div className="mt-4 flex items-start gap-3 rounded-xl border border-[#d9e2dc] bg-white p-3">
-                <img src={image} alt="Post cover preview" className="size-20 rounded-lg object-cover" />
+                <img src={imageUrl.trim() || image} alt="Post cover preview" className="size-20 rounded-lg object-cover" />
                 <div className="min-w-0 flex-1 pt-1">
-                  <p className="truncate text-sm font-medium text-[#183f3b]">{imageName}</p>
+                  <p className="truncate text-sm font-medium text-[#183f3b]">
+                    {imageUrl.trim() ? "Image from URL" : imageName}
+                  </p>
                   <p className="mt-1 text-xs text-slate-500">Cover image preview</p>
                 </div>
                 <button

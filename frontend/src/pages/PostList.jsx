@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useSelector } from "react-redux"
-import { FiArrowLeft, FiArrowUpRight, FiBookOpen, FiLink, FiPlus } from "react-icons/fi"
+import Swal from "sweetalert2"
+import { FiArrowLeft, FiArrowUpRight, FiBookOpen, FiEdit3, FiLink, FiPlus, FiTrash2 } from "react-icons/fi"
 import { selectCurrentUser } from "../redux/UserSlice"
 
 const formatDate = (date) => {
@@ -19,7 +20,50 @@ const PostList = () => {
   const [posts, setPosts] = useState([])
   const [isFetching, setIsFetching] = useState(true)
   const [error, setError] = useState("")
+  const [deletingPostId, setDeletingPostId] = useState("")
   const isLoading = Boolean(user?.username) && isFetching
+
+  const handleDelete = async (post) => {
+    const confirmation = await Swal.fire({
+      title: "Delete this post?",
+      text: "This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Delete post",
+      cancelButtonText: "Keep post",
+      confirmButtonColor: "#9b422f",
+      cancelButtonColor: "#52756c",
+      reverseButtons: true,
+      focusCancel: true,
+    })
+
+    if (!confirmation.isConfirmed) return
+
+    setDeletingPostId(post._id)
+
+    try {
+      const response = await fetch(`/api/posts/${post._id}`, {
+        method: "DELETE",
+        credentials: "include",
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || "The post could not be deleted.")
+      }
+
+      setPosts((currentPosts) => currentPosts.filter((currentPost) => currentPost._id !== post._id))
+    } catch (requestError) {
+      await Swal.fire({
+        title: "Couldn't delete post",
+        text: requestError.message || "The post could not be deleted.",
+        icon: "error",
+        confirmButtonColor: "#123e43",
+      })
+    } finally {
+      setDeletingPostId("")
+    }
+  }
 
   useEffect(() => {
     if (!user?.username) return undefined
@@ -125,12 +169,29 @@ const PostList = () => {
                     )}
                   </div>
                 </div>
-                <Link
-                  to={`/blogs/${post._id}`}
-                  className="inline-flex shrink-0 items-center gap-2 self-start text-sm font-semibold text-[#1d6b58] hover:text-[#123e43] sm:self-auto"
-                >
-                  Read story <FiArrowUpRight aria-hidden="true" className="size-4" />
-                </Link>
+                <div className="flex shrink-0 flex-wrap items-center gap-2 self-start sm:self-auto">
+                  <Link
+                    to={`/edit-post/${post._id}`}
+                    className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#d9e2dc] px-3 text-sm font-semibold text-[#183f3b] transition-colors hover:border-[#1d6b58] hover:bg-[#e8f2eb]"
+                  >
+                    <FiEdit3 aria-hidden="true" className="size-4" /> Edit
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(post)}
+                    disabled={Boolean(deletingPostId)}
+                    className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-[#e5d8d1] px-3 text-sm font-semibold text-[#9b422f] transition-colors hover:bg-[#f9e3dc] disabled:cursor-wait disabled:opacity-60"
+                  >
+                    <FiTrash2 aria-hidden="true" className="size-4" />
+                    {deletingPostId === post._id ? "Deleting..." : "Delete"}
+                  </button>
+                  <Link
+                    to={`/blogs/${post._id}`}
+                    className="inline-flex min-h-10 items-center gap-1 self-start px-2 text-sm font-semibold text-[#1d6b58] hover:text-[#123e43] sm:self-auto"
+                  >
+                    Read <FiArrowUpRight aria-hidden="true" className="size-4" />
+                  </Link>
+                </div>
               </article>
             ))}
           </div>
