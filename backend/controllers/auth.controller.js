@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import {v2 as cloudinary} from "cloudinary";
 import { generateTokenAndSetCookie } from "../utils/generateTokenAndSetCookie.js";
 import { deleteCloudinaryImage } from "../utils/cloudinaryImage.js";
+import { verifyGoogleIdToken } from "../utils/firebaseAdmin.js";
 
 const publicUser = (user) => ({
   _id: user._id,
@@ -12,7 +13,22 @@ const publicUser = (user) => ({
   email: user.email,
   profileImage: user.profileImage || "",
   role: user.role || "user",
+  isActive: user.isActive !== false,
+  hasPassword: Boolean(user.password),
 })
+
+const makeGoogleUsername = async (email) => {
+  const base = email.split("@")[0].toLowerCase().replace(/[^a-z0-9._-]/g, "").slice(0, 24) || "googleuser"
+  let username = base
+  let suffix = 1
+
+  while (await User.exists({ username })) {
+    const suffixText = String(suffix++)
+    username = `${base.slice(0, 30 - suffixText.length)}${suffixText}`
+  }
+
+  return username
+}
 
 export const test = (req, res)=>{
   res.json({message: "The api is working"})
@@ -106,8 +122,12 @@ export const login = async (req, res) =>{
       })
     }
 
+    if (user.isActive === false) {
+      return res.status(403).json({ error: "Your account has been disabled. Contact an administrator." })
+    }
+
     // Compare the password
-    const isPasswordCorrect = bcrypt.compareSync(password, user?.password)
+    const isPasswordCorrect = Boolean(user.password) && bcrypt.compareSync(password, user.password)
     if(!isPasswordCorrect){
       return res.status(400).json({
         error: "Invalid Credentials"
@@ -122,6 +142,64 @@ export const login = async (req, res) =>{
     return res.status(500).json({
       error: "Internal Server Error"
     })
+  }
+}
+
+export const googleLogin = async (req, res) => {
+  try {
+    const { idToken } = req.body
+    if (typeof idToken !== "string" || !idToken) {
+      return res.status(400).json({ error: "Google ID token is required" })
+    }
+
+    const googleUser = await verifyGoogleIdToken(idToken)
+    const email = googleUser.email?.trim().toLowerCase()
+    if (!googleUser.uid || !email || googleUser.email_verified !== true) {
+      return res.status(401).json({ error: "Use a verified Google email address" })
+    }
+
+    let user = await User.findOne({ firebaseUid: googleUser.uid })
+    if (!user) {
+      user = await User.findOne({ email })
+      if (user) {
+        if (user.isActive === false) {
+          return res.status(403).json({ error: "Your account has been disabled. Contact an administrator." })
+        }
+        if (user.firebaseUid && user.firebaseUid !== googleUser.uid) {
+          return res.status(409).json({ error: "This account is linked to another Google account" })
+        }
+
+        user.firebaseUid = googleUser.uid
+        if (!user.profileImage && googleUser.picture) user.profileImage = googleUser.picture
+        await user.save()
+      } else {
+        const username = await makeGoogleUsername(email)
+        user = await User.create({
+          firebaseUid: googleUser.uid,
+          username,
+          fullName: googleUser.name?.trim() || email.split("@")[0],
+          email,
+          profileImage: googleUser.picture || "",
+          password: "",
+        })
+      }
+    }
+
+    if (user.isActive === false) {
+      return res.status(403).json({ error: "Your account has been disabled. Contact an administrator." })
+    }
+
+    generateTokenAndSetCookie(user._id, res)
+    return res.status(200).json(publicUser(user))
+  } catch (error) {
+    if (error.code === 11000) {
+      return res.status(409).json({ error: "An account with this Google email already exists" })
+    }
+    if (error.code?.startsWith?.("auth/")) {
+      return res.status(401).json({ error: "Google sign-in could not be verified" })
+    }
+    console.error(`Error signing in with Google: ${error.message}`)
+    return res.status(500).json({ error: "Unable to sign in with Google" })
   }
 }
 
@@ -218,6 +296,9 @@ export const changePassword = async (req, res) => {
     }
 
     const user = await User.findById(req.user._id)
+    if (user && !user.password) {
+      return res.status(400).json({ error: "Your password is managed by your Google account" })
+    }
     if (!user || !bcrypt.compareSync(currentPassword, user.password)) {
       return res.status(401).json({ error: "Current password is incorrect" })
     }
@@ -234,16 +315,28 @@ export const changePassword = async (req, res) => {
 
 export const deleteAccount = async (req, res) => {
   try {
-    const { password } = req.body
-    if (!password) return res.status(400).json({ error: "Enter your password to delete your account" })
+    const { password, googleIdToken } = req.body
 
     const user = await User.findById(req.user._id)
-    if (!user || !bcrypt.compareSync(password, user.password)) {
-      return res.status(401).json({ error: "Password is incorrect" })
+    if (!user) return res.status(404).json({ error: "User not found" })
+
+    if (user.password) {
+      if (!password || !bcrypt.compareSync(password, user.password)) {
+        return res.status(401).json({ error: "Password is incorrect" })
+      }
+    } else {
+      if (!googleIdToken) {
+        return res.status(400).json({ error: "Verify your Google account to delete this account" })
+      }
+
+      const googleUser = await verifyGoogleIdToken(googleIdToken)
+      if (googleUser.uid !== user.firebaseUid || googleUser.email_verified !== true) {
+        return res.status(401).json({ error: "Google account verification failed" })
+      }
     }
 
     if (user.role === "admin") {
-      const adminCount = await User.countDocuments({ role: "admin" })
+      const adminCount = await User.countDocuments({ role: "admin", isActive: { $ne: false } })
       if (adminCount <= 1) {
         return res.status(409).json({ error: "The last admin account cannot be deleted" })
       }

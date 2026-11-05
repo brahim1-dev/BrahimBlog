@@ -1,12 +1,15 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router-dom"
+import { useSelector } from "react-redux"
 import { FiArrowLeft, FiImage, FiSave, FiX } from "react-icons/fi"
+import { selectCurrentUser } from "../redux/UserSlice"
 
 const RichTextEditor = lazy(() => import("../components/RichTextEditor"))
 
 const EditPost = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const user = useSelector(selectCurrentUser)
   const imageInputRef = useRef(null)
   const [title, setTitle] = useState("")
   const [category, setCategory] = useState("")
@@ -25,7 +28,13 @@ const EditPost = () => {
 
     const loadPost = async () => {
       try {
-        const response = await fetch(`/api/posts/${id}`, { signal: controller.signal })
+        const endpoint = user?.role === "admin"
+          ? `/api/admin/posts/${id}`
+          : `/api/posts/${id}`
+        const response = await fetch(endpoint, {
+          credentials: "include",
+          signal: controller.signal,
+        })
         const result = await response.json()
 
         if (!response.ok) {
@@ -48,7 +57,7 @@ const EditPost = () => {
 
     loadPost()
     return () => controller.abort()
-  }, [id])
+  }, [id, user?.role])
 
   const handleImageChange = (event) => {
     const file = event.target.files?.[0]

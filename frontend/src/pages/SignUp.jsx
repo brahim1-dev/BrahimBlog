@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useDispatch } from "react-redux"
 import { Link, useNavigate } from "react-router-dom"
+import GoogleAuthButton from "../components/GoogleAuthButton"
 import {
   clearAuthError,
   setAuthError,
@@ -379,6 +380,13 @@ const SignUp = () => {
               )}
             </button>
           </form>
+
+          <div className="my-5 flex items-center gap-3 text-xs font-medium uppercase tracking-[0.12em] text-slate-400">
+            <span className="h-px flex-1 bg-slate-100" />
+            or
+            <span className="h-px flex-1 bg-slate-100" />
+          </div>
+          <GoogleAuthButton />
 
           <div className="my-6 border-t border-slate-100" />
           <p className="text-center text-sm text-slate-500">

@@ -24,9 +24,18 @@ const userSchema = mongoose.Schema({
       enum: ["user", "admin"],
       default: "user",
     },
+    firebaseUid: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
     password: {
       type: String,
-      required: true,
+      default: "",
     },
   }, {
     timestamp: true

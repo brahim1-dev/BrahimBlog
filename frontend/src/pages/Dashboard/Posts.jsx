@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import DOMPurify from "dompurify"
-import { FiArrowUpRight, FiEdit3, FiImage, FiRefreshCw, FiSearch, FiTrash2, FiX } from "react-icons/fi"
+import { FiArrowUpRight, FiEdit3, FiImage, FiPower, FiRefreshCw, FiSearch, FiTrash2, FiX } from "react-icons/fi"
 import AdminNav from "./AdminNav"
 
 const formatDate = (date) => {
@@ -26,6 +26,7 @@ const Posts = () => {
   const [search, setSearch] = useState("")
   const [reloadKey, setReloadKey] = useState(0)
   const [deletingPostId, setDeletingPostId] = useState("")
+  const [updatingPostId, setUpdatingPostId] = useState("")
   const searchTerm = search.trim().toLocaleLowerCase()
   const filteredPosts = posts.filter((post) =>
     [post.title, post.category, post.author?.username, post.author?.fullName, getExcerpt(post.content)]
@@ -64,6 +65,53 @@ const Posts = () => {
     loadPosts()
     return () => controller.abort()
   }, [reloadKey])
+
+  const handleVisibilityChange = async (post) => {
+    const isPublished = post.isPublished === false
+    const { default: Swal } = await import("sweetalert2")
+    const confirmation = await Swal.fire({
+      title: isPublished ? "Enable this post?" : "Disable this post?",
+      text: isPublished
+        ? "This post will appear in public feeds and detail pages again."
+        : "This post will be hidden from public feeds, author lists, and detail pages.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: isPublished ? "Enable post" : "Disable post",
+      cancelButtonText: "Cancel",
+      confirmButtonColor: isPublished ? "#1d6b58" : "#9b422f",
+      cancelButtonColor: "#52756c",
+      reverseButtons: true,
+      focusCancel: true,
+    })
+
+    if (!confirmation.isConfirmed) return
+
+    setUpdatingPostId(post._id)
+    setError("")
+    try {
+      const response = await fetch(`/api/admin/posts/${post._id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ isPublished }),
+      })
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || "The post visibility could not be updated.")
+      }
+
+      setPosts((currentPosts) => currentPosts.map((currentPost) =>
+        currentPost._id === post._id
+          ? { ...currentPost, isPublished: result.isPublished }
+          : currentPost,
+      ))
+    } catch (requestError) {
+      setError(requestError.message || "The post visibility could not be updated.")
+    } finally {
+      setUpdatingPostId("")
+    }
+  }
 
   const handleDelete = async (post) => {
     const { default: Swal } = await import("sweetalert2")
@@ -169,12 +217,24 @@ const Posts = () => {
                       <span aria-hidden="true" className="size-1 rounded-full bg-[#aabbb0]" />
                       <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
                       <span className="rounded-full bg-[#e8f2eb] px-2 py-1 text-[10px] text-[#1d6b58]">{post.author?.username || "Unknown author"}</span>
+                      <span className={`rounded-full px-2 py-1 text-[10px] ${post.isPublished === false ? "bg-[#f9e3dc] text-[#9b422f]" : "bg-[#e8f2eb] text-[#1d6b58]"}`}>
+                        {post.isPublished === false ? "Disabled" : "Enabled"}
+                      </span>
                     </p>
                     <h2 className="truncate text-lg font-semibold text-[#183f3b]">{post.title}</h2>
                     <p className="mt-1 line-clamp-2 text-sm leading-5 text-slate-500">{getExcerpt(post.content)}</p>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => handleVisibilityChange(post)}
+                    disabled={Boolean(updatingPostId)}
+                    className={`inline-flex min-h-9 items-center gap-2 rounded-lg border px-3 text-sm font-semibold disabled:cursor-wait disabled:opacity-60 ${post.isPublished === false ? "border-[#1d6b58] text-[#1d6b58] hover:bg-[#e8f2eb]" : "border-[#e5d8d1] text-[#9b422f] hover:bg-[#f9e3dc]"}`}
+                  >
+                    <FiPower aria-hidden="true" className="size-4" />
+                    {updatingPostId === post._id ? "Updating..." : post.isPublished === false ? "Enable" : "Disable"}
+                  </button>
                   <Link to={`/edit-post/${post._id}`} className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#d9e2dc] px-3 text-sm font-semibold text-[#183f3b] hover:bg-[#e8f2eb]">
                     <FiEdit3 aria-hidden="true" className="size-4" /> Edit
                   </Link>

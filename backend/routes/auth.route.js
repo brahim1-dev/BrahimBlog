@@ -3,6 +3,7 @@ import {
 	changePassword,
 	deleteAccount,
 	getMe,
+	googleLogin,
 	login,
 	logout,
 	register,
@@ -17,6 +18,7 @@ const router = Router();
 router.get("/test", test)
 router.post("/register", register)
 router.post("/login", login)
+router.post("/google", googleLogin)
 router.post("/logout", logout)
 router.get("/me", protectRoute, getMe)
 router.patch("/profile", protectRoute, updateProfile)

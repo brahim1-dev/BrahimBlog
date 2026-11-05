@@ -56,6 +56,7 @@ const Profile = () => {
   const [deleteAccountError, setDeleteAccountError] = useState("")
   const [isDeletingAccount, setIsDeletingAccount] = useState(false)
   const isLoadingPosts = Boolean(user?.username) && isFetchingPosts
+  const hasPassword = user?.hasPassword !== false
 
   useEffect(() => {
     if (!user?.username) return undefined
@@ -240,12 +241,14 @@ const Profile = () => {
     const { default: Swal } = await import("sweetalert2")
     const confirmation = await Swal.fire({
       title: "Delete your account?",
-      text: "Your profile and all your posts will be permanently deleted. Enter your password to continue.",
+      text: hasPassword
+        ? "Your profile and all your posts will be permanently deleted. Enter your password to continue."
+        : "Your profile and all your posts will be permanently deleted. Verify your Google account to continue.",
       icon: "warning",
-      input: "password",
-      inputPlaceholder: "Current password",
-      inputAttributes: { autocomplete: "current-password", autocapitalize: "off" },
-      inputValidator: (password) => password ? undefined : "Your password is required.",
+      input: hasPassword ? "password" : undefined,
+      inputPlaceholder: hasPassword ? "Current password" : undefined,
+      inputAttributes: hasPassword ? { autocomplete: "current-password", autocapitalize: "off" } : undefined,
+      inputValidator: hasPassword ? (password) => password ? undefined : "Your password is required." : undefined,
       showCancelButton: true,
       confirmButtonText: "Delete account",
       cancelButtonText: "Keep my account",
@@ -261,11 +264,19 @@ const Profile = () => {
     setIsDeletingAccount(true)
 
     try {
+      let verification
+      if (hasPassword) {
+        verification = { password: confirmation.value }
+      } else {
+        const { signInWithGoogle } = await import("../firebase.js")
+        verification = { googleIdToken: await signInWithGoogle() }
+      }
+
       const response = await fetch("/api/auth/account", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ password: confirmation.value }),
+        body: JSON.stringify(verification),
       })
       const result = await response.json()
 
@@ -487,7 +498,12 @@ const Profile = () => {
                   <h2 id="password-heading" className="text-lg font-semibold text-[#183f3b]">Change password</h2>
                 </div>
               </div>
-              <form onSubmit={handlePasswordSubmit} className="mt-5 space-y-4">
+              {!hasPassword ? (
+                <p className="mt-5 text-sm leading-6 text-slate-600">
+                  This account signs in with Google. Its password is managed in your Google account.
+                </p>
+              ) : (
+                <form onSubmit={handlePasswordSubmit} className="mt-5 space-y-4">
                 <div>
                   <label htmlFor="current-password" className="mb-2 block text-sm font-medium text-[#183f3b]">Current password</label>
                   <input id="current-password" type="password" autoComplete="current-password" required value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} className="w-full rounded-lg border border-[#d9e2dc] bg-white px-3 py-2.5 text-sm outline-none focus:border-[#1d6b58] focus:ring-2 focus:ring-[#1d6b58]/15" />
@@ -505,7 +521,8 @@ const Profile = () => {
                 <button type="submit" disabled={isChangingPassword} className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-[#123e43] px-4 text-sm font-semibold text-white hover:bg-[#1d6b58] disabled:cursor-wait disabled:opacity-60">
                   <FiLock aria-hidden="true" className="size-4" /> {isChangingPassword ? "Updating..." : "Update password"}
                 </button>
-              </form>
+                </form>
+              )}
             </section>
 
             <section aria-labelledby="delete-account-heading" className="border-t-2 border-[#b35038] bg-[#fbf2ee] p-5 sm:p-6">

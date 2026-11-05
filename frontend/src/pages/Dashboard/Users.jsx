@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useSelector } from "react-redux"
-import { FiRefreshCw, FiTrash2, FiUsers } from "react-icons/fi"
+import { FiPower, FiRefreshCw, FiTrash2, FiUsers } from "react-icons/fi"
 import { selectCurrentUser } from "../../redux/UserSlice"
 import AdminNav from "./AdminNav"
 
@@ -12,6 +12,7 @@ const Users = () => {
 	const [error, setError] = useState("")
 	const [reloadKey, setReloadKey] = useState(0)
 	const [updatingUserId, setUpdatingUserId] = useState("")
+	const [updatingStatusId, setUpdatingStatusId] = useState("")
 	const [deletingUserId, setDeletingUserId] = useState("")
 
 	useEffect(() => {
@@ -87,6 +88,51 @@ const Users = () => {
 			setError(requestError.message || "The user role could not be updated.")
 		} finally {
 			setUpdatingUserId("")
+		}
+	}
+
+	const handleStatusChange = async (member) => {
+		const isActive = member.isActive === false
+		const { default: Swal } = await import("sweetalert2")
+		const confirmation = await Swal.fire({
+			title: isActive ? "Enable this account?" : "Disable this account?",
+			text: isActive
+				? `${member.username} will be able to sign in and use the blog again.`
+				: `${member.username} will be signed out and blocked from signing in, posting, and accessing posts with this account.`,
+			icon: "warning",
+			showCancelButton: true,
+			confirmButtonText: isActive ? "Enable account" : "Disable account",
+			cancelButtonText: "Cancel",
+			confirmButtonColor: isActive ? "#1d6b58" : "#9b422f",
+			cancelButtonColor: "#52756c",
+			reverseButtons: true,
+			focusCancel: true,
+		})
+
+		if (!confirmation.isConfirmed) return
+
+		setUpdatingStatusId(member._id)
+		setError("")
+		try {
+			const response = await fetch(`/api/admin/users/${member._id}/status`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ isActive }),
+			})
+			const result = await response.json()
+
+			if (!response.ok) {
+				throw new Error(result.error || "The account status could not be updated.")
+			}
+
+			setUsers((currentUsers) => currentUsers.map((user) =>
+				user._id === member._id ? { ...user, isActive: result.isActive } : user,
+			))
+		} catch (requestError) {
+			setError(requestError.message || "The account status could not be updated.")
+		} finally {
+			setUpdatingStatusId("")
 		}
 	}
 
@@ -168,6 +214,7 @@ const Users = () => {
 									<th scope="col" className="py-3 pr-4 font-semibold">User</th>
 									<th scope="col" className="py-3 pr-4 font-semibold">Email</th>
 									<th scope="col" className="py-3 pr-4 font-semibold">Posts</th>
+									<th scope="col" className="py-3 pr-4 font-semibold">Status</th>
 									<th scope="col" className="py-3 pr-4 font-semibold">Role</th>
 									<th scope="col" className="py-3 text-right font-semibold">Actions</th>
 								</tr>
@@ -191,6 +238,11 @@ const Users = () => {
 										<td className="py-4 pr-4 text-sm text-slate-600">{member.email}</td>
 										<td className="py-4 pr-4 text-sm text-slate-600">{member.postCount}</td>
 										<td className="py-4 pr-4">
+											<span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${member.isActive === false ? "bg-[#f9e3dc] text-[#9b422f]" : "bg-[#e8f2eb] text-[#1d6b58]"}`}>
+												{member.isActive === false ? "Disabled" : "Enabled"}
+											</span>
+										</td>
+										<td className="py-4 pr-4">
 											<label className="sr-only" htmlFor={`role-${member._id}`}>Role for {member.username}</label>
 											<select
 												id={`role-${member._id}`}
@@ -204,6 +256,15 @@ const Users = () => {
 											</select>
 										</td>
 										<td className="py-4 text-right">
+											<button
+												type="button"
+												onClick={() => handleStatusChange(member)}
+												disabled={Boolean(updatingStatusId) || member._id === currentUser?._id}
+												className={`mr-2 inline-flex min-h-9 items-center gap-2 rounded-lg border px-3 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${member.isActive === false ? "border-[#1d6b58] text-[#1d6b58] hover:bg-[#e8f2eb]" : "border-[#e5d8d1] text-[#9b422f] hover:bg-[#f9e3dc]"}`}
+											>
+												<FiPower aria-hidden="true" className="size-4" />
+												{updatingStatusId === member._id ? "Updating..." : member.isActive === false ? "Enable" : "Disable"}
+											</button>
 											<button
 												type="button"
 												aria-label={`Delete ${member.username}`}

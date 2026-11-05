@@ -30,7 +30,11 @@ const BlogPost = () => {
 
     const loadPost = async () => {
       try {
-        const response = await fetch(`/api/posts/${encodeURIComponent(id)}`, {
+        const endpoint = user?.role === "admin"
+          ? `/api/admin/posts/${encodeURIComponent(id)}`
+          : `/api/posts/${encodeURIComponent(id)}`
+        const response = await fetch(endpoint, {
+          credentials: "include",
           signal: controller.signal,
         })
         const result = await response.json()
@@ -53,7 +57,7 @@ const BlogPost = () => {
 
     loadPost()
     return () => controller.abort()
-  }, [id])
+  }, [id, user?.role])
 
   const handleShare = async () => {
     const shareUrl = window.location.href
