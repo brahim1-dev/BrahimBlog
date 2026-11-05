@@ -3,6 +3,13 @@ import User from "../models/user.model.js";
 import {v2 as cloudinary} from "cloudinary"
 import { deleteCloudinaryImage } from "../utils/cloudinaryImage.js";
 
+const publishedPostFilter = {
+  $or: [
+    { isPublished: true },
+    { isPublished: { $exists: false } },
+  ],
+}
+
 const resolvePostImage = async (image) => {
   if (!image) return { image }
   if (typeof image !== "string") {
@@ -90,7 +97,7 @@ export const getAllPosts = async(req, res)=>{
   try {
     
     //. Fetch all the post 
-    const posts = await Post.find() //get all Posts without filtering
+    const posts = await Post.find(publishedPostFilter)
     .sort({createdAt: -1})
     .populate({path: "author", select: "-password"})
 
@@ -110,10 +117,60 @@ export const getAllPosts = async(req, res)=>{
   }
 }
 
+export const getAdminPosts = async (req, res) => {
+  try {
+    const posts = await Post.find()
+      .sort({ createdAt: -1 })
+      .populate({ path: "author", select: "-password" })
+
+    return res.status(200).json(posts)
+  } catch (error) {
+    console.error(`Error loading admin posts: ${error.message}`)
+    return res.status(500).json({ error: "Unable to load posts" })
+  }
+}
+
+export const getAdminPostById = async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId)
+      .populate({ path: "author", select: "-password" })
+
+    if (!post) return res.status(404).json({ error: "Post not found" })
+    return res.status(200).json(post)
+  } catch (error) {
+    console.error(`Error loading admin post: ${error.message}`)
+    return res.status(500).json({ error: "Unable to load post" })
+  }
+}
+
+export const setPostPublished = async (req, res) => {
+  try {
+    const { postId } = req.params
+    const { isPublished } = req.body
+
+    if (typeof isPublished !== "boolean") {
+      return res.status(400).json({ error: "isPublished must be true or false" })
+    }
+
+    const post = await Post.findById(postId)
+    if (!post) return res.status(404).json({ error: "Post not found" })
+
+    post.isPublished = isPublished
+    await post.save()
+    return res.status(200).json({ _id: post._id, isPublished: post.isPublished })
+  } catch (error) {
+    console.error(`Error updating post visibility: ${error.message}`)
+    return res.status(500).json({ error: "Unable to update post visibility" })
+  }
+}
+
 
 export const getPostById = async(req, res)=>{
   try {
-    const post = await Post.findById(req.params.id)
+    const post = await Post.findOne({
+      _id: req.params.id,
+      ...publishedPostFilter,
+    })
     .populate({path: "author", select: "-password"})
     if(!post){
       return res.status(404).json({
@@ -238,7 +295,7 @@ export const getUserPosts = async(req, res)=>{
       error: "User not found"
     })
    }
-  const posts = await Post.find({author: user._id})
+  const posts = await Post.find({ author: user._id, ...publishedPostFilter })
     .sort({createdAt: -1})
     .populate({path: "author", select: "-password"})
 
