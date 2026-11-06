@@ -402,6 +402,7 @@ const SignUp = () => {
       </section>
     </main>
   )
+  
 }
 
 export default SignUp
