@@ -18,6 +18,7 @@ const getExcerpt = (content) =>
   DOMPurify.sanitize(content || "", { ALLOWED_TAGS: [], ALLOWED_ATTR: [] })
     .replace(/\s+/g, " ")
     .trim()
+    
 
 const Posts = () => {
   const [posts, setPosts] = useState([])
