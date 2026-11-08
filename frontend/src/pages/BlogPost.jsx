@@ -210,7 +210,6 @@ const BlogPost = () => {
             </aside>
           )}
         </div>
-
         <footer className="mx-auto mt-14 flex max-w-[42rem] flex-col justify-between gap-4 border-t border-[#d9e2dc] pt-6 sm:flex-row sm:items-center">
           <p className="text-sm text-slate-500">Thanks for spending a little time with this story.</p>
           <Link to="/blogs" className="inline-flex items-center gap-2 text-sm font-semibold text-[#1d6b58] hover:text-[#123e43]">
