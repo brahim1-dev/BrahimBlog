@@ -37,7 +37,6 @@ const GoogleAuthButton = () => {
         dispatch(setAuthStatus("idle"))
         return
       }
-
       const firebaseMessages = {
         "auth/configuration-not-found": "Firebase Authentication is not initialized for this project. In Firebase Console, open Authentication and enable the Google provider. Verify the web app auth domain and project ID belong to this same project.",
         "auth/operation-not-allowed": "Google sign-in is disabled for this Firebase project. Enable Google under Authentication > Sign-in method.",
